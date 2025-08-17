@@ -1,0 +1,298 @@
+import open3d as o3d
+import cv2
+import numpy as np
+
+from queue import Queue 
+from threading import Thread 
+
+from matplotlib import pyplot as plt
+from CustomCalibrateCamera.Stereo_Calib_Camera import stereoCalibrateCamera
+from CustomCalibrateCamera.Stereo_Calib_Camera import getStereoCameraParameters, getgetStereoSingleCameraParameters
+
+import Camera.jetsonCam as jetCam
+import time
+
+def draw_lines(img):
+   for i in range(0,img.shape[0],30):
+       cv2.line(img,(0,i),(img.shape[1],i),(255,0,0),1)
+   return img   
+
+
+def getPoints(points,img_disp,img):
+   points[:,2]=img_disp.flatten()
+   img=img/255
+   colours = np.stack(((img[:,:,2]).flatten(),(img[:,:,1]).flatten(),(img[:,:,0]).flatten()),1)
+   return points, colours
+
+cam1 = jetCam.jetsonCam()
+cam2 = jetCam.jetsonCam()
+
+
+cam1.open(sensor_id=1,
+          sensor_mode=3,
+          flip_method=0,
+          display_height=540,
+          display_width=960,
+        )
+cam2.open(sensor_id=0,
+          sensor_mode=3,
+          flip_method=0,
+          display_height=540,
+          display_width=960,
+        )
+
+cam1.start()
+cam2.start()
+
+
+block_s = 5
+num_disp= 16
+image_size = (960,540)
+stereo = None
+cont_exe = True
+
+
+
+def read_camera(capl, capr, q1):
+   global cont_exe 
+   while cont_exe:
+      #print("thr1")
+      # Read stereo images
+      retl,image_left = capl.read()
+      retr, image_right = capr.read()
+      if retl and retr:  
+         q1.put((image_left,image_right))
+      time.sleep(0.07) 
+ 
+def vis_img(q1):
+   global cont_exe 
+   while cont_exe:
+      #print("thr2")
+      if q1.empty()==False:
+             
+         # Read stereo images
+         image_left, image_right = q1.get()
+         cv2.imshow('left',image_left)
+         cv2.imshow('right',image_right)
+         k=cv2.waitKey(1)
+         if k == ord('x'):
+            cont_exe= False
+
+      time.sleep(0.0018)
+
+
+def vis_3d(q1):
+   global image_size
+   global cont_exe 
+
+   h,w=image_size[:2]
+
+   total_pix=w*h
+   points = np.ones((total_pix,3)) *255
+   colours= np.ones((total_pix,3))
+   #points = np.random.rand(300, 3)
+
+
+   count = 0
+   for i in range(0,w,1):
+     for j in range(0,h,1):
+        if count ==total_pix:
+          break
+        points[count]= [i,j,0 ]
+        count+=1
+
+   # Step 2: Convert the NumPy array to an Open3D PointCloud object
+   point_cloud = o3d.geometry.PointCloud()
+
+
+   point_cloud.points = o3d.utility.Vector3dVector(points)
+
+   vis = o3d.visualization.Visualizer()
+
+   vis.create_window(
+      window_name='Carla Lidar',
+      width=960,
+      height=540,
+      left=480,
+      top=270)
+   vis.get_render_option().background_color = [0.05, 0.05, 0.05]
+   vis.get_render_option().point_size = 1
+   vis.get_render_option().show_coordinate_frame = True
+
+   vis.add_geometry(point_cloud)  
+   while cont_exe:
+      #print("thr2")
+      if q1.empty()==False:
+             
+         # Read stereo images
+         colormap_image, normalized_disparity_map = q1.get()
+
+         #print(time.time(),end=' ')
+         points, colours= getPoints(points,normalized_disparity_map*255, colormap_image)
+         #print(time.time(),)
+         #points = np.random.rand(300, 3)
+         point_cloud.points = o3d.utility.Vector3dVector(points)
+         point_cloud.colors = o3d.utility.Vector3dVector(colours) 
+
+         vis.update_geometry(point_cloud)
+         vis.poll_events()
+         vis.update_renderer()
+         # This can fix Open3D jittering issues:
+         time.sleep(0.05)
+      #time.sleep(0.05)
+
+def vis_depth(q1):
+   global block_s
+   global num_disp 
+   global image_size
+   global stereo
+   global cont_exe 
+
+   while cont_exe:
+      #print("thr2")
+      if q1.empty()==False:
+             
+         # Read stereo images
+         colormap_image, normalized_disparity_map = q1.get()
+
+         cv2.imshow('Depth colour map',colormap_image )
+         k=cv2.waitKey(1)
+   
+         if k == ord('x'):
+           cont_exe = False 
+         elif k == ord('q'):
+           #increase block size
+           block_s +=2
+           print("block_size:"+str(block_s))
+           stereo.setBlockSize(block_s)
+
+         elif k == ord('a'):
+           #decrease block size
+           block_s =max(block_s-2,5)
+           print("block_size:"+str(block_s))
+           stereo.setBlockSize(block_s)
+
+         elif k == ord('w'):
+           #increase disparity
+           num_disp +=16
+           print("disparity:"+str(num_disp))
+           stereo.setNumDisparities(num_disp)
+
+         elif k == ord('s'):
+           #decrease disparity
+           num_disp =max(16, num_disp-16)
+           print("disparity:"+str(num_disp))
+           stereo.setNumDisparities(num_disp)  
+      time.sleep(0.001) 
+
+
+def process_image(qin,qout,q3d):
+   global block_s
+   global num_disp
+   global image_size
+   global stereo
+   global cont_exe 
+
+   # Remap the images using rectification maps
+   #stereoCalibrateCamera(cam1,cam2,'CustomCalibrateCamera/jetson_stereo_8MP',24)
+   lod_data = getStereoCameraParameters('CustomCalibrateCamera/jetson_stereo_8MP.npz')
+   lod_datac1 = getgetStereoSingleCameraParameters('CustomCalibrateCamera/jetson_stereo_8MPc1.npz')
+   lod_datac2 = getgetStereoSingleCameraParameters('CustomCalibrateCamera/jetson_stereo_8MPc2.npz')
+
+   camera_matrix_left = lod_data[0]
+   dist_coeffs_left =  lod_data[1]
+   camera_matrix_right =  lod_data[2]
+   dist_coeffs_right =  lod_data[3]
+   R =  lod_data[4]
+   T =  lod_data[5] 
+
+   #stereo rectify
+   R1,R2,P1,P2,Q,roi1,roi2= cv2.stereoRectify(camera_matrix_left,dist_coeffs_left, camera_matrix_right, dist_coeffs_right, image_size, R, T)
+
+
+
+   # Create a StereoBM object
+   #stereo = cv2.StereoBM_create(numDisparities=num_disp, blockSize=block_s)
+   stereo = cv2.cuda.createStereoBM(numDisparities=num_disp, blockSize=block_s)
+
+
+   # Load rectification maps
+   map1_left, map2_left = cv2.initUndistortRectifyMap( camera_matrix_left, dist_coeffs_left, R1, P1, image_size, cv2.CV_16SC2)
+   map1_right, map2_right = cv2.initUndistortRectifyMap(camera_matrix_right, dist_coeffs_right, R2, P2, image_size, cv2.CV_16SC2)
+
+   # Initialize GPU capture object
+   gpu_mat_l = cv2.cuda_GpuMat()
+   gpu_mat_r = cv2.cuda_GpuMat()
+
+   # Create output disparity map
+   gpu_disparity = cv2.cuda_GpuMat()
+
+   # Create CUDA stream
+   stream = cv2.cuda_Stream()
+
+
+   while cont_exe:
+      print(qin.qsize(),end= " ")
+      print(qout.qsize())
+      if qin.empty()==False:
+             
+         # Read stereo images
+         image_left, image_right = qin.get()   
+
+         rectified_left = cv2.remap(image_left, map1_left, map2_left, cv2.INTER_LINEAR)
+         rectified_right = cv2.remap(image_right, map1_right, map2_right, cv2.INTER_LINEAR)
+
+         gpu_mat_l.upload(rectified_left)
+         gpu_mat_r.upload(rectified_right)
+
+         # Convert images to grayscale
+         gray_left = cv2.cuda.cvtColor(gpu_mat_l, cv2.COLOR_BGR2GRAY)
+         gray_right = cv2.cuda.cvtColor(gpu_mat_r, cv2.COLOR_BGR2GRAY)
+
+         # Compute disparity map
+         gpu_disparity = stereo.compute(gray_left, gray_right, stream=stream)
+
+         # Download disparity map from GPU to CPU memory
+         disparity = gpu_disparity.download()
+
+         # Normalize the disparity map to the range [0, 1]
+         normalized_disparity_map = cv2.normalize(disparity, None, 0.0, 1.0, cv2.NORM_MINMAX,cv2.CV_32F)
+
+
+         colormap_image = cv2.applyColorMap(np.uint8(normalized_disparity_map * 255), cv2.COLORMAP_JET) 
+
+         qout.put((colormap_image,normalized_disparity_map))
+         q3d.put((colormap_image,normalized_disparity_map))
+      
+      time.sleep(0.0001)
+
+
+# Create the shared queue and launch both threads 
+qin = Queue() 
+qout = Queue()
+q3d = Queue() 
+t1 = Thread(target = read_camera, args =(cam1,cam2,qin, ))  
+#t2 = Thread(target = process_image, args =(qin,qout,q3d, )) 
+#t3 = Thread(target = vis_depth, args =(qout, ))
+t4 = Thread(target = vis_img, args =(qin, ))
+#t5 = Thread(target = vis_3d, args =(q3d, ))
+
+t1.start() 
+#t2.start()
+#t3.start()
+t4.start()
+#t5.start()
+
+t1.join()
+#t2.join() 
+#t3.join() 
+t4.join()
+#t5.join()
+
+cv2.destroyAllWindows()
+cam1.stop()
+cam2.stop()
+cam1.release()
+cam2.release()
+
+
