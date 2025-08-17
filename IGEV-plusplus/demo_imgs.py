@@ -1,3 +1,4 @@
+# /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus/demo_imgs.py
 import sys
 sys.path.append('core')
 
