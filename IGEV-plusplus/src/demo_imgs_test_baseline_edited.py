@@ -1,6 +1,6 @@
 """
 # asset/real_imgs/rect 폴더의 모든 이미지를 처리
-PYTHONPATH=. python src/c.py
+PYTHONPATH=. python src/demo_imgs_test_baseline_edited.py
 
 # 특정 폴더만 지정하여 처리하고 싶을 경우
 PYTHONPATH=. python src/demo_imgs_test_baseline_edited.py --input_dir ./asset/real_imgs/rect/real_world_1
