@@ -10,10 +10,13 @@ import cv2
 
 PROJECT_ROOT = "/home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus"
 
-CALIB_DIR   = os.path.join(PROJECT_ROOT, "calib_out")
-RAW_DIR     = os.path.join(PROJECT_ROOT, "test_imgs", "raw")
+ASSET_DIR   = os.path.join(PROJECT_ROOT, "asset")
+
+CALIB_DIR   = os.path.join(ASSET_DIR, "calib_out")
+RAW_DIR     = os.path.join(ASSET_DIR, "test_imgs", "raw")
+OUTPUT_DIR  = os.path.join(ASSET_DIR, "test_imgs", "output")
+
 RECT_DIR    = os.path.join(PROJECT_ROOT, "test_imgs", "rect")
-OUTPUT_DIR  = os.path.join(PROJECT_ROOT, "test_imgs", "output")
 CKPT_PATH   = os.path.join(PROJECT_ROOT, "pretrained_models", "igev_plusplus", "sceneflow.pth")
 
 IMG_ID = "001"
