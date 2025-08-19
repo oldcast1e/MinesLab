@@ -1,3 +1,9 @@
+"""
+cd /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus
+PYTHONPATH=. python src/utils/rectify_images.py
+"""
+
+
 import cv2
 import numpy as np
 import os
