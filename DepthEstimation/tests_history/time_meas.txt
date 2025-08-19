@@ -1,0 +1,16 @@
+cam read : mn : 0.0010
+           mx : 0.0026
+
+
+proc img : mn : 0.050
+           mx : 0.070
+
+
+3d vis   : mn : 0.09
+           mx : 0.13
+
+
+cv vis   : mn : 0.0030
+           mx : 0.0070
+
+
