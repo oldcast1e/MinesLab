@@ -9,10 +9,10 @@ W, H = 1920, 1080
 APPLY_FLIP = True   # 카메라가 거꾸로 달려 있다면 flip(-1)
 # =======================
 
-# 현재 스크립트(src/) 기준 → 상위 폴더(IGEV-plusplus/) → test_imgs/raw
+# 현재 스크립트(src/) 기준 → 상위 폴더(IGEV-plusplus/) → real_imgs/raw
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-SAVE_ROOT = os.path.join(PROJECT_ROOT, "test_imgs", "raw")
+SAVE_ROOT = os.path.join(PROJECT_ROOT, "real_imgs", "raw")
 
 LEFT_DIR  = os.path.join(SAVE_ROOT, "left")
 RIGHT_DIR = os.path.join(SAVE_ROOT, "right")

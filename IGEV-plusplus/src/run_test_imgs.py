@@ -2,7 +2,7 @@
 실행 방법:
 conda activate IGEV_plusplus
 cd ~/Documents/oldcast1e/MinesLab/IGEV-plusplus
-python src/run_test_imgs.py
+python src/run_real_imgs.py
 """
 import os, json, glob, subprocess
 import numpy as np
@@ -13,10 +13,10 @@ PROJECT_ROOT = "/home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus"
 ASSET_DIR   = os.path.join(PROJECT_ROOT, "asset")
 
 CALIB_DIR   = os.path.join(ASSET_DIR, "calib_out")
-RAW_DIR     = os.path.join(ASSET_DIR, "test_imgs", "raw")
-OUTPUT_DIR  = os.path.join(ASSET_DIR, "test_imgs", "output")
+RAW_DIR     = os.path.join(ASSET_DIR, "real_imgs", "raw")
+OUTPUT_DIR  = os.path.join(ASSET_DIR, "real_imgs", "output")
 
-RECT_DIR    = os.path.join(PROJECT_ROOT, "test_imgs", "rect")
+RECT_DIR    = os.path.join(PROJECT_ROOT, "real_imgs", "rect")
 CKPT_PATH   = os.path.join(PROJECT_ROOT, "pretrained_models", "igev_plusplus", "sceneflow.pth")
 
 IMG_ID = "001"
