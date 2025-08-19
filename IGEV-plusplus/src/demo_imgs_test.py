@@ -2,7 +2,7 @@
 cd /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus
 
 PYTHONPATH=. python src/demo_imgs_test.py \
-  --input_dir ./asset/img \
+  --input_dir ./asset/imgs \
   --output_dir ./asset/output \
   --restore_ckpt ./asset/calib/pretrained_models/igev_plusplus/sceneflow.pth
 
