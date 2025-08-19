@@ -1,11 +1,11 @@
 """
 cd /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus
 
-PYTHONPATH=. python src/demo_imgs_test.py \
-  --input_dir ./asset/imgs \
-  --output_dir ./asset/output \
-  --restore_ckpt ./asset/calib/pretrained_models/igev_plusplus/sceneflow.pth
+# 기본 경로가 모두 수정되었으므로, 추가 인자 없이 바로 실행 가능합니다.
+PYTHONPATH=. python src/demo_imgs_test.py
 
+# 특정 폴더(예: tests)만 테스트하고 싶을 경우
+PYTHONPATH=. python src/demo_imgs_test.py --input_dir ./asset/imgs/tests
 """
 
 import sys
@@ -37,7 +37,10 @@ def load_image(imfile):
 def demo(args):
     # 모델 불러오기
     model = torch.nn.DataParallel(IGEVStereo(args), device_ids=[0])
+    
+    print(f"Loading checkpoint from {args.restore_ckpt}")
     model.load_state_dict(torch.load(args.restore_ckpt))
+    
     model = model.module
     model.to(DEVICE)
     model.eval()
@@ -46,9 +49,15 @@ def demo(args):
     output_directory.mkdir(exist_ok=True, parents=True)
 
     with torch.no_grad():
-        left_images = sorted(glob.glob(os.path.join(args.input_dir, "*/im0.png")))
-        right_images = sorted(glob.glob(os.path.join(args.input_dir, "*/im1.png")))
-        print(f"Found {len(left_images)} image pairs. Saving files to {output_directory}/")
+        # glob 패턴을 재귀적으로 탐색하도록 변경하여 유연성 확보
+        left_images = sorted(glob.glob(os.path.join(args.input_dir, "**/im0.png"), recursive=True))
+        right_images = sorted(glob.glob(os.path.join(args.input_dir, "**/im1.png"), recursive=True))
+        
+        if not left_images:
+            print(f"Error: No image pairs found in '{args.input_dir}'. Please check the path and file structure.")
+            return
+            
+        print(f"Found {len(left_images)} image pairs in '{args.input_dir}'. Saving files to '{output_directory}/'")
 
         for (imfile1, imfile2) in tqdm(list(zip(left_images, right_images))):
             image1 = load_image(imfile1)
@@ -70,10 +79,16 @@ def demo(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_dir', help="path to input stereo pairs", default="./asset/img")
-    parser.add_argument('--output_dir', help="directory to save output", default="./asset/output")
+    
+    # --- 수정된 부분 1: 기본 input_dir 경로 수정 ---
+    parser.add_argument('--input_dir', help="path to input stereo pairs", default="./asset/imgs")
+    
+    # --- 수정된 부분 2: 기본 output_dir 경로 수정 ---
+    parser.add_argument('--output_dir', help="directory to save output", default="./asset/tests")
+    
+    # --- 수정된 부분 3: 기본 restore_ckpt 경로 수정 ---
     parser.add_argument('--restore_ckpt', help="restore checkpoint", 
-                        default="./asset/calib/pretrained_models/igev_plusplus/sceneflow.pth")
+                        default="./pretrained_models/igev_plusplus/sceneflow.pth")
 
     # 모델 설정
     parser.add_argument('--mixed_precision', action='store_true', default=True, help='use mixed precision')
