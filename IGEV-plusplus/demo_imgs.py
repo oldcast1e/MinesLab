@@ -1,4 +1,9 @@
 # /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus/demo_imgs.py
+"""
+cd /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus
+PYTHONPATH=. python demo_imgs.py
+"""
+
 import sys
 sys.path.append('core')
 

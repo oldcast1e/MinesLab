@@ -1,7 +1,5 @@
 """
 cd /home/mines/Documents/oldcast1e/MinesLab/IGEV-plusplus
-
-# 기본 경로가 모두 수정되었으므로, 추가 인자 없이 바로 실행 가능합니다.
 PYTHONPATH=. python src/demo_imgs_test.py
 
 # 특정 폴더(예: tests)만 테스트하고 싶을 경우
@@ -81,10 +79,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     # --- 수정된 부분 1: 기본 input_dir 경로 수정 ---
-    parser.add_argument('--input_dir', help="path to input stereo pairs", default="./asset/imgs")
+    parser.add_argument('--input_dir', help="path to input stereo pairs", default="./asset/tests")
     
     # --- 수정된 부분 2: 기본 output_dir 경로 수정 ---
-    parser.add_argument('--output_dir', help="directory to save output", default="./asset/tests")
+    parser.add_argument('--output_dir', help="directory to save output", default="./asset/output")
     
     # --- 수정된 부분 3: 기본 restore_ckpt 경로 수정 ---
     parser.add_argument('--restore_ckpt', help="restore checkpoint", 
