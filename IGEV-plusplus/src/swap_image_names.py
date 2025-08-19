@@ -48,5 +48,5 @@ def swap_image_filenames_in_subdirs(target_parent_dir):
 
 if __name__ == "__main__":
     # 프로젝트 최상위 경로를 기준으로 실행한다고 가정
-    TARGET_DIRECTORY = os.path.join(os.getcwd(), "asset", "tests")
+    TARGET_DIRECTORY = os.path.join(os.getcwd(), "asset", "real_imgs", "raw")
     swap_image_filenames_in_subdirs(TARGET_DIRECTORY)
