@@ -1,12 +1,16 @@
+"""
+cd /Users/apple/Desktop/Python/MinesLab/IGEV-plusplus
+python src/utils/capture_pair_linux_mac.py
+"""
+
 import cv2
 import os
 import platform
 import re
 
-# ====================================================================
 # 사용자 설정
-# ====================================================================
-# 카메라 장치 인덱스 (v4l2-ctl --list-devices 명령어로 확인)
+
+# 카메라 장치 인덱스 (macOS: 'ffplay -f avfoundation -list_devices true -i ""' / Linux: 'v4l2-ctl --list-devices' 명령어로 확인)
 LEFT_DEV_ID = 0
 RIGHT_DEV_ID = 1
 
@@ -43,13 +47,9 @@ def main():
     스테레오 카메라에서 이미지 쌍을 캡처하고 지정된 형식으로 저장합니다.
     """
     # --- 경로 설정 ---
-    try:
-        # 이 스크립트가 'src' 폴더 안에 있다고 가정
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(script_dir)
-    except NameError:
-        # 대화형 환경 등에서 실행될 경우를 대비
-        project_root = os.getcwd()
+    # 수정: 스크립트 위치 대신 현재 작업 디렉토리를 프로젝트 루트로 사용합니다.
+    # 이는 사용자가 항상 프로젝트 최상위 폴더에서 스크립트를 실행하기 때문입니다.
+    project_root = os.getcwd()
 
     save_root = os.path.join(project_root, "asset", "real_imgs", "raw")
     os.makedirs(save_root, exist_ok=True)
