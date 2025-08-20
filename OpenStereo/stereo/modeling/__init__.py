@@ -1,5 +1,5 @@
-# @Time    : 2023/8/26 13:02
-# @Author  : zhangchenming
+# @Time      : 2023/8/26 13:02
+# @Author    : zhangchenming
 
 from .models.casnet.trainer import Trainer as CasStereoTrainer
 from .models.cfnet.trainer import Trainer as CFNetTrainer
@@ -23,11 +23,16 @@ except:
     raise ValueError('If you want to train/eval NMRF-Stereo, please refer to docs/prepare_foundationstereo.md. Otherwise you can comment out this line of code')
 '''
 
+# --- 수정된 부분 시작 ---
+# LightStereo 모델(timm==0.5.4 필요)과 NMRF 모델(timm>=0.9 필요) 간의 라이브러리 버전 충돌을 해결하기 위해
+# 현재 사용하지 않는 NMRF 모델 관련 코드를 주석 처리합니다.
 # If you want to train/eval NMRF-Stereo, you need to build deformable attention and superpixel-guided disparity downsample operator: 'cd stereo/modeling/models/nmrf/ops && sh make.sh && cd ..'
-try:
-    from .models.nmrf.trainer import Trainer as NMRFTrainer
-except:
-    raise ValueError("If you want to train/eval NMRF-Stereo, you need to build deformable attention and superpixel-guided disparity downsample operator: 'cd stereo/modeling/models/nmrf/ops && sh make.sh && cd ..'")
+# try:
+#     from .models.nmrf.trainer import Trainer as NMRFTrainer
+# except:
+#     raise ValueError("If you want to train/eval NMRF-Stereo, you need to build deformable attention and superpixel-guided disparity downsample operator: 'cd stereo/modeling/models/nmrf/ops && sh make.sh && cd ..'")
+# --- 수정된 부분 끝 ---
+
 __all__ = {
     'STTR': STTRTrainer,
     'PSMNet': PSMNetTrainer,
@@ -45,10 +50,11 @@ __all__ = {
     'StereoBaseGRU': StereoBaseGRUTrainer,
     # 'FoundationStereo': FoundationStereoTrainer,
     # 'IInet': IINetTrainer,
-    'NMRF': NMRFTrainer
+    # 'NMRF': NMRFTrainer  # --- 수정: 이 줄을 주석 처리하여 NMRF 모델을 비활성화합니다. ---
 }
 
 
 def build_trainer(args, cfgs, local_rank, global_rank, logger, tb_writer):
     trainer = __all__[cfgs.MODEL.NAME](args, cfgs, local_rank, global_rank, logger, tb_writer)
     return trainer
+# --- 수정된 부분: NMRF 모델 관련 코드를 주석 처리하여 충돌 방지 ---

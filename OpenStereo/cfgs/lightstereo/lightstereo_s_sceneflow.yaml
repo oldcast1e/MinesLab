@@ -28,7 +28,7 @@ MODEL:
     LEFT_ATT: true
     FIND_UNUSED_PARAMETERS: false
     CKPT: -1
-    PRETRAINED_MODEL: ''
+    PRETRAINED_MODEL: './data/checkpoint/LightStereo/LightStereo-S-SceneFlow-General.pth'
 
 OPTIMIZATION:
     FREEZE_BN: false
